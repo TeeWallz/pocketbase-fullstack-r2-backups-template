@@ -1,27 +1,68 @@
-# Pocketbase Cloudflare Pages Hosting and R2 Backup Streaming Template
+# A template for Pocketbase with Cloudflare R2 Backup Streaming with Vue Front end 
 
-Firstly, clone this template in Github and pull locally
+This template pulls from the following projects, please send them love:
+- Pocketbase backend R2 backup base: https://github.com/aleda145/pocketbase-lab
+- Pocketbase front end Vue base: https://github.com/StefanVDWeide/pocketbase-vue
+- Pocketbase compose file: https://github.com/muchobien/pocketbase-docker
+
+## What's inside
+
+From these requirements, this template uses:
+- [Pocketbase](https://github.com/pocketbase/pocketbase) as a back end
+  - Uses SQLite - Blazingly fast, easy to back up and restore as it's justa  file
+  - All in one back end (Auth, Data, Live Updates)
+- [Litestream](https://github.com/benbjohnson/litestream) for backup streaming and easy restoring
+  - Streams changes to database near instantly to R2 (or other destination if needed. But that's on you)
+  - Facilitates automatic restoring on new container creation and easy restoring on existing container via a point-in-time
+- [Vue](https://github.com/vuejs/vue) for frontend because it's more fun that react - hosted by Github pages, Cloudflare Pages or whichever static host you prefer
+
+
+## Notes
+
+**ONLY ONE INSTANCE SHOULD BE BACKING UP TO AN R2 BUCKET AT A SINGLE TIME. LITESTREAM AND POCKETBASE ARE A SINGLE PROCESS APPLICATION. THIS IS NOT DISTRIBUTED COMPUTING**
+
+Pocketbase reserves the right to break anything in this repo, so there will be some manual steps to allow for this repo to be as generic as possible.
+By default, it will grab the newest version of pocketbase, but it can be limited by providing an variable X
+I have kept the go extended version of Pocketbase (and not the binary) to allow for custom functions out-of-the-box
+
+
+
+
+# Stop talking, How do I actually install this thing
+
+## Set up R2 and SecretKeys on Cloudflare
+
+
+| **Creating R2 bucket**                                                                                         |                                             |
+|----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| On Cloudflare, click R2 on the left pane                                                                       | ![](.readme_images/r2_button.png)           |
+| Click 'Create Bucket'                                                                                          | ![](.readme_images/create_bucket.png)       |
+| Type in the name for the bucket. This name will be used later                                                  | ![](.readme_images/creation_of_bucket.png)  |
+| The following screen will show the values for R2_BUCKET and R2_URL. Note that R2_URL excludes the bucket name. | ![](.readme_images/bucket_created.png)      |
+
+| **Creating API Token and secret**                                                                              |                                             |
+|----------------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| Now create the access keys. Click 'Manage API Tokens'                                                          | ![](.readme_images/manage_tokens.png)       |
+| Click 'Create API Token'                                                                                       | ![](.readme_images/create_token_button.png) |
+| Set the permissions to 'Edit'                                                                                  | ![](.readme_images/api_edit_permission.png) |
+| You can set an expirty if you wish. Either way, click 'Create API token'                                       | ![](.readme_images/create_token.png)        |
+| Note these secret keys. BE SURE NOT TO UPLOAD THESE TO GITHUB!                                                 | ![](.readme_images/keys.png)                |
+
 
 ## Set up Pocketbase backend for local dev
 
-1. Set up R2 Cloudflare bucket and create API access Access/Secret keys
+Clone this template in Github and pull locally
+
 1. Copy the environment variables template
- ``` cd backend && cp .env.template .env && nano .env ```
-2. Replace placeholder text with values from Cloudflare
+ ``` cd backend && cp .env.template .env```
+2. Replace placeholder text in ```.env``` with values from Cloudflare we got beabove
 3. Run `docker compose up -d` to bring Pocketbase up with backup streaming enabled
+4. Run ```./apply_migrations.sh``` to generate the 'post' collection to allow the example front end to work. 
+5. Access Pocketbase via http://0.0.0.0:8090/_/
+6. Yes, that's it
 
 
-## Front end dev
-Copy the template environment file.
-
-```bash
-cd ../frontend
-cp .env.template .env
-```
-As we are developing manually, the API url shoudn't need to be modified inside this file
-
-
-Set up npm modules
+## Front end
 ```
 npm install
 npm run start
@@ -32,6 +73,24 @@ Open http://localhost:3000/ and create an account
 - Check the network tab for errors as the basic setup here doesn't show error
 
 You are now running a Pocketbase/React setup
+
+
+
+
+# Deploying to production
+If you have your own server, just brind up the docker container on a server, and your Pocketbase database will automatically grab current data.
+
+If you don't want  aserver, you coul dget a service like fly.io to host your code.
+
+
+
+
+# Migrating to new version of pocketbase
+Check notes 
+Modify database as required
+```docker-compose down && docker-compose up --build ```
+
+e-
 
 
 

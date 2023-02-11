@@ -1,10 +1,17 @@
 #!/bin/bash
 set -e
 
+if [ "${BYPASS_LITESTREAM:-true}"  = "true" ] ; then
+    echo 'Bypassing Lightstream!'
+    exec /app/pocketbase serve --http 0.0.0.0:8090
+    exit
+fi
+
+echo 'Running Lightstream wrapper around pocketbase'
+
 echo "Check diskspace on VM"
 df -h
 
-echo "litestream version"
 litestream version
 
 echo "Restore db if exists"
@@ -13,4 +20,5 @@ litestream restore -if-replica-exists -if-db-not-exists /pb_data/logs.db
 echo "Restored successfully"
 
 echo "replicate!"
-exec litestream replicate -exec "/pocketbase serve --http 0.0.0.0:8090"
+exec litestream replicate -exec "/app/pocketbase serve --http 0.0.0.0:8090"
+
